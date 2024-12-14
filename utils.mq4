@@ -11,7 +11,7 @@ void CreateBuffer(
   int style,
   int width,
   color clr,
-  int arrowCode
+  int arrowCode = 10
 ){
   string name = StringFormat("(%d)buffer", buffer);
   if(type == DRAW_ARROW) SetIndexArrow(buffer, arrowCode);
@@ -25,16 +25,18 @@ void CreateBuffer(
 }
 
 //+------------------------------------------------------------------+
-//| store double value                                               |
+//| store indicator value                                            |
 //+------------------------------------------------------------------+
-void StoreValue(double &array[], double value, int index){
+void StoreValue(double &array[], double value, int size, int index){
   ArrayInitialize(array, EMPTY_VALUE);
   ArraySetAsSeries(array, true);
+  ArrayResize(array, size+1);
   array[index] = value;
 }
 
-void StoreValue(int &array[], int value, int index){
+void StoreValue(int &array[], int value, int size, int index){
   ArrayInitialize(array, EMPTY_VALUE);
   ArraySetAsSeries(array, true);
+  ArrayResize(array, size+1);
   array[index] = value;
 }
