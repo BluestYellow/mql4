@@ -27,16 +27,14 @@ void CreateBuffer(
 //+------------------------------------------------------------------+
 //| store indicator value                                            |
 //+------------------------------------------------------------------+
-void StoreValue(double &array[], double value, int size, int index){
+void StoreValue(double &array[], int size){
   ArrayInitialize(array, EMPTY_VALUE);
   ArraySetAsSeries(array, true);
   ArrayResize(array, size+1);
-  array[index] = value;
 }
 
-void StoreValue(int &array[], int value, int size, int index){
+void StoreValue(int &array[], int size){
   ArrayInitialize(array, EMPTY_VALUE);
   ArraySetAsSeries(array, true);
   ArrayResize(array, size+1);
-  array[index] = value;
 }
