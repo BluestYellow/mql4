@@ -14,7 +14,7 @@ Projeto focado em opções binárias.
 1. **Clonar o Repositório**
    Faça o download ou clone este repositório usando:
    ```bash
-   git clone https://github.com/SeuUsuario/Market-pulse.git
+   git clone https://github.com/BluestYellow/mql4.git
    ```
 
 2. **Copiar os Arquivos**
