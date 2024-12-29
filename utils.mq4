@@ -62,3 +62,30 @@ void CreateLabel(
     ObjectSet(name, OBJPROP_TIME1, time);
   }
 }
+
+//+------------------------------------------------------------------+
+//| custom alert                                                     |
+//+------------------------------------------------------------------+
+void CustomAlert(const string &dir){
+  string symbol = Symbol();
+  string stringPeriod;
+  int period = Period();
+  
+  switch(period){
+    case(PERIOD_M1): stringPeriod = "M1"; break;
+    case(PERIOD_M5): stringPeriod = "M5"; break;
+    case(PERIOD_M15): stringPeriod = "M15"; break;
+    case(PERIOD_M30): stringPeriod = "M30"; break;
+    case(PERIOD_H1): stringPeriod = "H1"; break;
+    default: stringPeriod = "unknown"; break;
+  }
+
+  string displayMsg = StringFormat(
+    "(o_o)<(signal at |%s| for |%s| in |%s|)",
+    symbol,
+    dir,
+    stringPeriod
+  );
+  
+  Alert(displayMsg);
+}

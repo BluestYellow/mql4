@@ -1,5 +1,4 @@
 #import "utils.ex4"
-  // create buffer ============= ||//
   void CreateBuffer(
     int buffer,
     double &array[],
@@ -9,14 +8,11 @@
     color clr,
     int arrowCode = 10
   );
-  // create buffer ============= ||
   
-  // store value ===================================================== ||
   void StoreValue(double &array[], int size);
   void StoreValue(int &array[], int size);
-  // store value ===================================================== ||
+  void CustomAlert(const string &dir);
   
-  // create label ==================================================== ||
   void CreateLabel(
     int labelID,
     string text,
@@ -26,7 +22,6 @@
     datetime time,
     color clr
   );
-  // create label ==================================================== ||
 #import
 
 #property indicator_buffers 2
@@ -38,11 +33,11 @@
 //| global statement                                                 |
 //+------------------------------------------------------------------+
 // user variables
-input int indicatorPeriod = 200;
+input int indicatorPeriod = 20;
 input double inputWeightA = 6.32;
 input double inputWeightB = 2.12;
-input double inputTolerance = 93;
-input int mbb = 1000;
+input double inputTolerance = 5;
+input int mbb = 78;
 
 // enuns
 enum STATE{PUTT_STATE, CALL_STATE};
@@ -71,58 +66,70 @@ int init(){
 }
 
 //+------------------------------------------------------------------+
+//| delete event                                                     |
+//+------------------------------------------------------------------+
+void deinit(){
+   ObjectsDeleteAll(0, -1, OBJ_TEXT);
+}
+
+//+------------------------------------------------------------------+
 //| per-tick event                                                   |
 //+------------------------------------------------------------------+
 int start(){
   int limit = ArraySize(Close);
   ObjectsDeleteAll(0, -1, OBJ_TEXT);
+  
   // loop to data from candles
-  for(int i = 0; i <= limit; i++){
-    if(i >= mbb) continue;
-    double distance = GetDistance(indicatorPeriod, 1, i);
-    double volume = (double)Volume[i];
-    distanceArray[i] = distance;
-    volumeArray[i] = volume;
+  for(int a = 0; a <= limit; a++){
+    if(a >= mbb) continue;
+    double distance = GetDistance(indicatorPeriod, 1, a);
+    double volume = (double)Volume[a];
+    distanceArray[a] = distance;
+    volumeArray[a] = volume;
+  }
+  
+  // get norm value loop
+  for(int b = 0; b <= limit; b++){
+    if(b >= mbb) continue;
+    //--- calculate distance value
+    int normBaseValue = 100;
+    double currentDistanceValue = distanceArray[b];
+    double currentVolumeValue = volumeArray[b];
+    double normDistance = NormalizeValue(distanceArray, currentDistanceValue);
+    double normVolume = NormalizeValue(volumeArray, currentVolumeValue);
+    double normDistancePondered = (normDistance*normBaseValue) * inputWeightA;
+    double normVolumePondered = (normVolume*normBaseValue) * inputWeightB;
+    normilizedDistances[b] = (
+      (normDistancePondered + normVolumePondered) / 
+      (inputWeightA + inputWeightB)
+    );
+    //---
   }
   
   // main loop
+  double maxValue = GetMaxValue(normilizedDistances);
   for(int i = 0; i <= limit; i++){
     if(i >= mbb) continue;
+    double normIndexValue = normilizedDistances[i];
     
-    double dist = distanceArray[i];
-    double normlizedDistance = NormalizeValue(distanceArray, dist);
-    
-    double vol = volumeArray[i];
-    double normlizedVolume = NormalizeValue(volumeArray, vol);
-    
-    double weightA = inputWeightA;
-    double paramA = (normlizedDistance*100) * weightA;
-    
-    double weightB = inputWeightB;
-    double paramB = (normlizedVolume*100) * weightB;
-    
-    double wzkValue = (paramA + paramB) / (weightA + weightB);
-    
-    string distText = DoubleToStr(MathRound(wzkValue), 0);
+    //--- plot texts on chart
     double atr = iATR(NULL, PERIOD_CURRENT, 14, i);
+    string text = DoubleToStr(MathRound(normIndexValue), 0);
     double price = Low[i] - atr/3;
+    CreateLabel(i, text, 8, DEFAULT_FONT, price, Time[i], clrGray);
+    //---
     
-    CreateLabel(i, distText, 8, DEFAULT_FONT, price, Time[i], clrGray);
-    
-    STATE curState = GetState(indicatorPeriod, 1, i); // current state
-    
-    bool sigTrigger = wzkValue >= inputTolerance;
-    
+    //--- plot arrows
+    STATE curState = GetState(indicatorPeriod, 1, i);
+    bool sigTrigger = normIndexValue >= maxValue - inputTolerance;
     bool call = curState == CALL_STATE;
     bool putt = curState == PUTT_STATE;
     bool bull = Close[i] > Open[i];
     bool bear = Close[i] < Open[i];
-    
     callSig[i] = (sigTrigger && call && bear) ? Low[i]:EMPTY_VALUE;
     puttSig[i] = (sigTrigger && putt && bull) ? High[i]:EMPTY_VALUE;
+    //---
   }
-  
-  
   return(Bars);
 }
 
@@ -162,9 +169,7 @@ double NormalizeValue(double &scrArray[], double value){
   double array[];
   ArrayCopy(array, scrArray);
   int size = ArraySize(array);
- 
   if(size > mbb) ArrayResize(array, mbb);
- 
   int maxIndex = ArrayMaximum(array);
   int minIndex = ArrayMinimum(array);
   double maxRange = array[maxIndex];
@@ -172,4 +177,17 @@ double NormalizeValue(double &scrArray[], double value){
   double normValue = (value - minRange) / (maxRange - minRange);
   
   return(normValue);
+}
+
+//+------------------------------------------------------------------+
+//| get max value function                                           |
+//+------------------------------------------------------------------+
+double GetMaxValue(double &scrArray[]){
+  double array[];
+  ArrayCopy(array, scrArray);
+  int size = ArraySize(array);
+  if(size > mbb) ArrayResize(array, mbb);
+  int maxIndex = ArrayMaximum(array);
+  double maxRange = array[maxIndex];
+  return(maxRange);
 }
