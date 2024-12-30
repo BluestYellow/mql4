@@ -12,6 +12,7 @@
   void StoreValue(double &array[], int size);
   void StoreValue(int &array[], int size);
   void CustomAlert(const string &dir);
+  void SetupLayout();
   
   void CreateLabel(
     int labelID,
@@ -20,7 +21,8 @@
     string font,
     double price,
     datetime time,
-    color clr
+    color clr,
+    double uniqueFactor = 0.23
   );
 #import
 
@@ -29,18 +31,23 @@
 #property strict
 #define DEFAULT_FONT "Lexend"
 
+
 //+------------------------------------------------------------------+
 //| global statement                                                 |
 //+------------------------------------------------------------------+
-// user variables
-input int indicatorPeriod = 20;
-input double inputWeightA = 6.32;
-input double inputWeightB = 2.12;
-input double inputTolerance = 5;
-input int mbb = 78;
-
 // enuns
 enum STATE{PUTT_STATE, CALL_STATE};
+enum OPERATION_MODE{TREND/*tendência*/, REVERSION/*reversão*/};
+
+// user variables
+input int indicatorPeriod = 20;           // período do indicador
+input double inputWeightA = 6.32;         // influência da tendência
+input double inputWeightB = 2.12;         // influência do volume
+input double inputTolerance = 5;          // sensibilidade do limite
+input OPERATION_MODE opMode = REVERSION;  // modo de operação
+
+// variables
+int mbb = indicatorPeriod;
 
 // arrays
 double callSig[];
@@ -55,9 +62,12 @@ double normilizedDistances[];
 //| init event                                                       |
 //+------------------------------------------------------------------+
 int init(){
-
-  CreateBuffer(0, callSig, DRAW_ARROW, STYLE_SOLID, 1, clrBlueViolet, 233);
-  CreateBuffer(1, puttSig, DRAW_ARROW, STYLE_SOLID, 1, clrBlueViolet, 234);
+  SetupLayout();
+  color bullColor = (color)ChartGetInteger(0, CHART_COLOR_CANDLE_BULL);
+  color bearColor = (color)ChartGetInteger(0, CHART_COLOR_CANDLE_BEAR);
+  
+  CreateBuffer(0, callSig, DRAW_ARROW, STYLE_SOLID, 1, bullColor, 233);
+  CreateBuffer(1, puttSig, DRAW_ARROW, STYLE_SOLID, 1, bearColor, 234);
   
   StoreValue(distanceArray, mbb);
   StoreValue(volumeArray, mbb);
@@ -113,24 +123,63 @@ int start(){
     double normIndexValue = normilizedDistances[i];
     
     //--- plot texts on chart
-    double atr = iATR(NULL, PERIOD_CURRENT, 14, i);
-    string text = DoubleToStr(MathRound(normIndexValue), 0);
-    double price = Low[i] - atr/3;
-    CreateLabel(i, text, 8, DEFAULT_FONT, price, Time[i], clrGray);
-    //---
-    
-    //--- plot arrows
-    STATE curState = GetState(indicatorPeriod, 1, i);
-    bool sigTrigger = normIndexValue >= maxValue - inputTolerance;
-    bool call = curState == CALL_STATE;
-    bool putt = curState == PUTT_STATE;
-    bool bull = Close[i] > Open[i];
-    bool bear = Close[i] < Open[i];
-    callSig[i] = (sigTrigger && call && bear) ? Low[i]:EMPTY_VALUE;
-    puttSig[i] = (sigTrigger && putt && bull) ? High[i]:EMPTY_VALUE;
+    //double atr = iATR(NULL, PERIOD_CURRENT, 14, i);
+    //string text = DoubleToStr(MathRound(normIndexValue), 0);
+    //double price = Low[i] - atr/3;
+    //color textColor = (color)ChartGetInteger(0, CHART_COLOR_GRID);
+    //CreateLabel(i, text, 8, DEFAULT_FONT, price, Time[i], textColor, Open[i]);
     //---
   }
+  PlotArrows(normilizedDistances);
+  
   return(Bars);
+}
+
+//+------------------------------------------------------------------+
+//| mark arrow text                                                  |
+//+------------------------------------------------------------------+
+void MarkArrowText(string text, double price, color textColor){
+  CreateLabel(34, text, 8, DEFAULT_FONT, price, Time[0], textColor, Open[0]);
+}
+
+//+------------------------------------------------------------------+
+//| plot arrows                                                      |
+//+------------------------------------------------------------------+
+void PlotArrows(double &normArrayDist[]){
+  STATE currentState = GetState(indicatorPeriod, 1, 0);
+  double maxValue = GetMaxValue(normArrayDist);
+  string text = DoubleToStr(MathRound(normArrayDist[0]), 0);
+  double atr  = iATR(NULL, PERIOD_CURRENT, 14, 0) / 3;
+  double hiP  = High[0] + atr;
+  double loP  = Low[0]  - atr;
+  bool noPreviousSignal = callSig[1] == EMPTY_VALUE && puttSig[1] == EMPTY_VALUE;
+  bool callCondition = false;
+  bool puttCondition = false;
+  
+  if(opMode == REVERSION) {
+    callCondition = 
+      (normArrayDist[0] >= (maxValue - inputTolerance)) &&
+      (currentState == CALL_STATE) &&
+      (Close[0] < Open[0]) &&
+      noPreviousSignal;
+
+    puttCondition = 
+      (normArrayDist[0] >= (maxValue - inputTolerance)) &&
+      (currentState == PUTT_STATE) &&
+      (Close[0] > Open[0]) &&
+      noPreviousSignal;
+  } else {
+    callCondition = 
+      (normArrayDist[0] >= (maxValue - inputTolerance * 4)) &&
+      (currentState == PUTT_STATE);
+  
+    puttCondition = 
+      (normArrayDist[0] >= (maxValue - inputTolerance * 4)) &&
+      (currentState == CALL_STATE);
+  }
+
+  callSig[0] = (callCondition) ? (loP):(EMPTY_VALUE);
+  puttSig[0] = (puttCondition) ? (hiP):(EMPTY_VALUE);
 }
 
 //+------------------------------------------------------------------+

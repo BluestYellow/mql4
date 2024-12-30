@@ -51,15 +51,18 @@ void CreateLabel(
   string font,
   double price,
   datetime time,
-  color clr
+  color clr,
+  double uniqueFactor = 0.23
 ) {
-  string name = StringFormat("(%d)label", labelID);
+  string name = StringFormat("(%d)(%d)label", labelID, uniqueFactor);
   bool object = ObjectCreate(0, name, OBJ_TEXT, 0, 0, 0);
 
   if(object) {
     ObjectSetText(name, text, fontSize, font, clr);
     ObjectSet(name, OBJPROP_PRICE1, price);
     ObjectSet(name, OBJPROP_TIME1, time);
+    ObjectSet(name, OBJPROP_SELECTABLE, false);
+    ObjectSet(name, OBJPROP_HIDDEN, true);
   }
 }
 
@@ -88,4 +91,25 @@ void CustomAlert(const string &dir){
   );
   
   Alert(displayMsg);
+}
+
+//+------------------------------------------------------------------+
+//| setup layout                                                     |
+//+------------------------------------------------------------------+
+void SetupLayout(){
+  color background = C'36,42,58';
+  color foregraund = C'120,124,134';
+  color grid = C'59,64,79';
+  color bullColor = C'0,154,45';
+  color bearColor = C'193,67,49';
+  color dojiColor = C'59,64,79';
+  
+  ChartSetInteger(0, CHART_COLOR_BACKGROUND, background);
+  ChartSetInteger(0, CHART_COLOR_FOREGROUND, foregraund);
+  ChartSetInteger(0, CHART_COLOR_GRID, grid);
+  ChartSetInteger(0, CHART_COLOR_CANDLE_BULL, bullColor);
+  ChartSetInteger(0, CHART_COLOR_CHART_UP, bullColor);
+  ChartSetInteger(0, CHART_COLOR_CANDLE_BEAR, bearColor);
+  ChartSetInteger(0, CHART_COLOR_CHART_DOWN, bearColor);
+  ChartSetInteger(0, CHART_COLOR_CHART_LINE, dojiColor);
 }
