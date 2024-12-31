@@ -11,8 +11,9 @@
   
   void StoreValue(double &array[], int size);
   void StoreValue(int &array[], int size);
-  void CustomAlert(const string &dir);
+  void CustomAlert(string dir, string msg, int index, double &buffer[]);
   void SetupLayout();
+  void BackgroundIMG();
   
   void CreateLabel(
     int labelID,
@@ -26,10 +27,15 @@
   );
 #import
 
-#property indicator_buffers 2
+#property indicator_buffers 4
 #property indicator_chart_window
 #property strict
 #define DEFAULT_FONT "Lexend"
+#define expiration D'2025.03.10 00:00'
+
+#property copyright "BlueX Indicators"
+#property link "https://t.me/BlueXInd"
+#property description "Indicator gratuito - venda proibida!"
 
 
 //+------------------------------------------------------------------+
@@ -40,6 +46,7 @@ enum STATE{PUTT_STATE, CALL_STATE};
 enum OPERATION_MODE{TREND/*tendência*/, REVERSION/*reversão*/};
 
 // user variables
+input string text111 = "- indicator gratuito -"; // - indicador gratuito -
 input int indicatorPeriod = 20;           // período do indicador
 input double inputWeightA = 6.32;         // influência da tendência
 input double inputWeightB = 2.12;         // influência do volume
@@ -50,6 +57,8 @@ input OPERATION_MODE opMode = REVERSION;  // modo de operação
 int mbb = indicatorPeriod;
 
 // arrays
+double preCallSig[];
+double prePuttSig[];
 double callSig[];
 double puttSig[];
 
@@ -63,11 +72,15 @@ double normilizedDistances[];
 //+------------------------------------------------------------------+
 int init(){
   SetupLayout();
+  BackgroundIMG();
   color bullColor = (color)ChartGetInteger(0, CHART_COLOR_CANDLE_BULL);
   color bearColor = (color)ChartGetInteger(0, CHART_COLOR_CANDLE_BEAR);
   
-  CreateBuffer(0, callSig, DRAW_ARROW, STYLE_SOLID, 1, bullColor, 233);
-  CreateBuffer(1, puttSig, DRAW_ARROW, STYLE_SOLID, 1, bearColor, 234);
+  CreateBuffer(0, preCallSig, DRAW_ARROW, STYLE_SOLID, 3, bullColor, 158);
+  CreateBuffer(1, prePuttSig, DRAW_ARROW, STYLE_SOLID, 3, bearColor, 158);
+  
+  CreateBuffer(2, callSig, DRAW_ARROW, STYLE_SOLID, 1, bullColor, 217);
+  CreateBuffer(3, puttSig, DRAW_ARROW, STYLE_SOLID, 1, bearColor, 218);
   
   StoreValue(distanceArray, mbb);
   StoreValue(volumeArray, mbb);
@@ -80,14 +93,20 @@ int init(){
 //+------------------------------------------------------------------+
 void deinit(){
    ObjectsDeleteAll(0, -1, OBJ_TEXT);
+   ObjectsDeleteAll(0, -1, OBJ_BITMAP_LABEL);
 }
 
 //+------------------------------------------------------------------+
 //| per-tick event                                                   |
 //+------------------------------------------------------------------+
 int start(){
+  if(expiration <= Time[0]){
+    Alert("indicator expired -> telegram: t.me/BlueXInd");
+    return(0);
+  }
   int limit = ArraySize(Close);
   ObjectsDeleteAll(0, -1, OBJ_TEXT);
+  ObjectsDeleteAll(0, -1, OBJ_BITMAP_LABEL);
   
   // loop to data from candles
   for(int a = 0; a <= limit; a++){
@@ -131,7 +150,7 @@ int start(){
     //---
   }
   PlotArrows(normilizedDistances);
-  
+  BackgroundIMG();
   return(Bars);
 }
 
@@ -152,7 +171,7 @@ void PlotArrows(double &normArrayDist[]){
   double atr  = iATR(NULL, PERIOD_CURRENT, 14, 0) / 3;
   double hiP  = High[0] + atr;
   double loP  = Low[0]  - atr;
-  bool noPreviousSignal = callSig[1] == EMPTY_VALUE && puttSig[1] == EMPTY_VALUE;
+  bool noPreviousSignal = preCallSig[1] == EMPTY_VALUE && prePuttSig[1] == EMPTY_VALUE;
   bool callCondition = false;
   bool puttCondition = false;
   
@@ -178,8 +197,12 @@ void PlotArrows(double &normArrayDist[]){
       (currentState == CALL_STATE);
   }
 
-  callSig[0] = (callCondition) ? (loP):(EMPTY_VALUE);
-  puttSig[0] = (puttCondition) ? (hiP):(EMPTY_VALUE);
+  preCallSig[0] = (callCondition) ? (loP):(EMPTY_VALUE);
+  prePuttSig[0] = (puttCondition) ? (hiP):(EMPTY_VALUE);
+  callSig[0] = (preCallSig[1] != EMPTY_VALUE) ? (loP):(EMPTY_VALUE);
+  puttSig[0] = (prePuttSig[1] != EMPTY_VALUE) ? (hiP):(EMPTY_VALUE);
+  CustomAlert("call", "entrada prox vela", 0, preCallSig);
+  CustomAlert("put", "entrada prox vela", 0, prePuttSig);
 }
 
 //+------------------------------------------------------------------+

@@ -2,6 +2,8 @@
 //| MQL4 library                                                     |
 //+------------------------------------------------------------------+
 #property library
+#resource "\\Images\\background.bmp"
+#define expiration D'2025.03.10 00:00'
 
 //+------------------------------------------------------------------+
 //| CreateBuffer                                                     |
@@ -15,24 +17,33 @@ void CreateBuffer(
   color clr,
   int arrowCode = 10
 ){
-  string name = StringFormat("(%d)buffer", buffer);
-  if(type == DRAW_ARROW) SetIndexArrow(buffer, arrowCode);
-  
-  ArrayInitialize(array, EMPTY_VALUE);
-  ArraySetAsSeries(array, true);
-  SetIndexBuffer(buffer, array);
-  SetIndexLabel(buffer, name);
-  SetIndexEmptyValue(buffer, EMPTY_VALUE);
-  SetIndexStyle(buffer, type, style, width, clr);
+  if(expiration <= Time[0]){
+    Print("indicator expired -> telegram: t.me/BlueXInd");
+  } else {
+    string name = StringFormat("(%d)buffer", buffer);
+    if(type == DRAW_ARROW) SetIndexArrow(buffer, arrowCode);
+    ArrayInitialize(array, EMPTY_VALUE);
+    ArraySetAsSeries(array, true);
+    SetIndexBuffer(buffer, array);
+    SetIndexLabel(buffer, name);
+    SetIndexEmptyValue(buffer, EMPTY_VALUE);
+    SetIndexStyle(buffer, type, style, width, clr);
+    Print("everything okay - " + name + " Created!");
+  }
 }
 
 //+------------------------------------------------------------------+
 //| store indicator value                                            |
 //+------------------------------------------------------------------+
 void StoreValue(double &array[], int size){
-  ArrayInitialize(array, EMPTY_VALUE);
-  ArraySetAsSeries(array, true);
-  ArrayResize(array, size+1);
+  if(expiration <= Time[0]){
+    Print("indicator expired -> telegram: t.me/BlueXInd");
+  } else {
+    ArrayInitialize(array, EMPTY_VALUE);
+    ArraySetAsSeries(array, true);
+    ArrayResize(array, size+1);
+    Print("everything okay - array created!");
+  }
 }
 
 void StoreValue(int &array[], int size){
@@ -69,7 +80,8 @@ void CreateLabel(
 //+------------------------------------------------------------------+
 //| custom alert                                                     |
 //+------------------------------------------------------------------+
-void CustomAlert(const string &dir){
+static datetime alertdt;
+void CustomAlert(string dir, string msg, int index, double &buffer[]){
   string symbol = Symbol();
   string stringPeriod;
   int period = Period();
@@ -84,20 +96,28 @@ void CustomAlert(const string &dir){
   }
 
   string displayMsg = StringFormat(
-    "(o_o)<(signal at |%s| for |%s| in |%s|)",
+    "(o_o)<(%s <--> |%s| for |%s| in |%s|)",
+    msg,
     symbol,
     dir,
     stringPeriod
   );
   
-  Alert(displayMsg);
+  if(
+    index         == 0 
+    && buffer[0]  != EMPTY_VALUE
+    && alertdt    != Time[0]
+  ){
+    Alert(displayMsg);
+    alertdt = Time[0];
+  }
 }
 
 //+------------------------------------------------------------------+
 //| setup layout                                                     |
 //+------------------------------------------------------------------+
 void SetupLayout(){
-  color background = C'36,42,58';
+  color background = C'27,31,41';
   color foregraund = C'120,124,134';
   color grid = C'59,64,79';
   color bullColor = C'0,154,45';
@@ -112,4 +132,21 @@ void SetupLayout(){
   ChartSetInteger(0, CHART_COLOR_CANDLE_BEAR, bearColor);
   ChartSetInteger(0, CHART_COLOR_CHART_DOWN, bearColor);
   ChartSetInteger(0, CHART_COLOR_CHART_LINE, dojiColor);
+}
+
+//+------------------------------------------------------------------+
+//| background image                                                 |
+//+------------------------------------------------------------------+
+void BackgroundIMG(){
+  if(expiration <= Time[0]){
+    Print("indicator expired -> telegram: t.me/BlueXInd");
+  } else {
+    string name = "bkg";
+    string path = "::images\\background.bmp";
+    bool object = ObjectCreate(0, name, OBJ_BITMAP_LABEL, 0, 0, 0);
+    if(object){
+      ObjectSetString(0, name, OBJPROP_BMPFILE, path);
+      ObjectSet(name, OBJPROP_BACK, true);
+    }
+  }
 }
