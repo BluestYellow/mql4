@@ -82,9 +82,9 @@ void CreateLabel(
 //+------------------------------------------------------------------+
 static datetime alertdt;
 void CustomAlert(string dir, string msg, int index, double &buffer[]){
-  string symbol = Symbol();
+  const string symbol = Symbol();
   string stringPeriod;
-  int period = Period();
+  const int period = Period();
   
   switch(period){
     case(PERIOD_M1): stringPeriod = "M1"; break;
@@ -117,12 +117,12 @@ void CustomAlert(string dir, string msg, int index, double &buffer[]){
 //| setup layout                                                     |
 //+------------------------------------------------------------------+
 void SetupLayout(){
-  color background = C'27,31,41';
-  color foregraund = C'120,124,134';
-  color grid = C'59,64,79';
-  color bullColor = C'0,154,45';
-  color bearColor = C'193,67,49';
-  color dojiColor = C'59,64,79';
+  const color background = C'27,31,41';
+  const color foregraund = C'120,124,134';
+  const color grid = C'59,64,79';
+  const color bullColor = C'0,154,45';
+  const color bearColor = C'193,67,49';
+  const color dojiColor = C'59,64,79';
   
   ChartSetInteger(0, CHART_COLOR_BACKGROUND, background);
   ChartSetInteger(0, CHART_COLOR_FOREGROUND, foregraund);
@@ -141,8 +141,8 @@ void BackgroundIMG(){
   if(expiration <= Time[0]){
     Print("indicator expired -> telegram: t.me/BlueXInd");
   } else {
-    string name = "bkg";
-    string path = "::images\\background.bmp";
+    const string name = "bkg";
+    const string path = "::images\\background.bmp";
     bool object = ObjectCreate(0, name, OBJ_BITMAP_LABEL, 0, 0, 0);
     if(object){
       ObjectSetString(0, name, OBJPROP_BMPFILE, path);

@@ -54,7 +54,7 @@ input double inputTolerance = 5;          // sensibilidade do limite
 input OPERATION_MODE opMode = REVERSION;  // modo de operação
 
 // variables
-int mbb = indicatorPeriod;
+const int mbb = indicatorPeriod;
 
 // arrays
 double preCallSig[];
@@ -73,8 +73,8 @@ double normilizedDistances[];
 int init(){
   SetupLayout();
   BackgroundIMG();
-  color bullColor = (color)ChartGetInteger(0, CHART_COLOR_CANDLE_BULL);
-  color bearColor = (color)ChartGetInteger(0, CHART_COLOR_CANDLE_BEAR);
+  const color bullColor = (color)ChartGetInteger(0, CHART_COLOR_CANDLE_BULL);
+  const color bearColor = (color)ChartGetInteger(0, CHART_COLOR_CANDLE_BEAR);
   
   CreateBuffer(0, preCallSig, DRAW_ARROW, STYLE_SOLID, 3, bullColor, 158);
   CreateBuffer(1, prePuttSig, DRAW_ARROW, STYLE_SOLID, 3, bearColor, 158);
@@ -121,7 +121,7 @@ int start(){
   for(int b = 0; b <= limit; b++){
     if(b >= mbb) continue;
     //--- calculate distance value
-    int normBaseValue = 100;
+    const int normBaseValue = 100;
     double currentDistanceValue = distanceArray[b];
     double currentVolumeValue = volumeArray[b];
     double normDistance = NormalizeValue(distanceArray, currentDistanceValue);
