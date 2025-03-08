@@ -1,56 +1,47 @@
-# Market-pulse
-Projeto focado em opções binárias.
+# Market Pulse Indicator 📈
 
-<div align="center"> 
-	<h3>
-		⚠️ Atenção: não é recomendável o uso dessa ferramenta para operações com dinheiro real. Nada postado aqui deve ser encarado como dica de investimento. O uso dessa ferramenta deve ser feito por pessoas responsáveis e que sabem exatamente o que estão fazendo.
-	</h3>
+Market Pulse is a MetaTrader 4 (MT4) indicator designed to identify potential trend reversal points in financial markets using a combination of price and volume analysis.
+
+<div align="center">
+  <h3>
+    ⚠️ Disclaimer: This tool is for educational purposes only. Do not use it for real money trading. The creator is not responsible for any financial losses.
+  </h3>
 </div>
 
 ---
 
-## Como instalar 🛠️
+## Installation 🛠️
 
-1. **Clonar o Repositório**
-   Faça o download ou clone este repositório usando:
+### Prerequisites
+
+- MetaTrader 4 platform
+- MetaEditor (included with MT4)
+
+### Step-by-Step Guide
+
+1. **Clone the Repository**
    ```bash
    git clone https://github.com/BluestYellow/mql4.git
    ```
 
-2. **Copiar os Arquivos**
-   - Coloque todos os arquivos `.mq4` na pasta `Indicators` do MetaTrader 4.
+2. **Copy Files**
+   - Move all indicator files to your MT4 `Indicators` directory:
+     ```
+     /MetaTrader 4/MQL4/Indicators/
+     ```
 
-3. **Compilar os Arquivos**
-   Abra o MetaEditor, localize os arquivos copiados e compile-os pressionando **F7**.
+3. **Compile Indicators**
+   - Open MetaEditor
+   - Locate the copied files
+   - Compile each file by pressing **F7**
 
-4. **Carregar o Indicador**
-   No MetaTrader 4, vá na aba "Navegador", selecione "Indicadores Personalizados" e arraste o indicador `MarketPulse` para o gráfico desejado.
-
----
-
-## Arquivos 📂
-
-- **`MarketPulse.mq4`**: 
-  Indicador focado em calcular o melhor ponto possível de reversão de tendências. Ele funciona com base nos seguintes critérios:
-  - Calcula a distância entre o preço atual e uma média móvel arbitrária e normaliza o valor de 0 a 100.
-  - Aplica o mesmo processo ao volume, identificando níveis notáveis (máximo ponto histórico).
-  - Gera sinais quando o volume atinge valores extremos junto com a máxima distância do preço atual em relação à média, partindo da ideia de que o preço sempre tende a retornar à média em algum momento.
-
-- **`utils.mq4`**: 
-  Biblioteca compilável contendo funções utilitárias para múltiplos projetos. Inclui:
-  - Criação de buffers.
-  - Ajustes de arrays temporários.
-  - Criação de objetos visuais no gráfico.
+4. **Load Indicator**
+   - In MT4, go to the 'Navigator' panel
+   - Under 'Custom Indicators', find `MarketPulse`
+   - Drag and drop onto your desired chart
 
 ---
 
-## Considerações 🤔
+## Contact 📬
 
-O objetivo principal é aprimorar a ideia por trás do `MarketPulse`. Qualquer tipo de colaboração é muito bem-vinda! Sinta-se à vontade para abrir issues ou enviar pull requests.
-
----
-
-## Contato 📬
-
-Se tiver dúvidas ou sugestões, entre em contato através do Telegram: [@BlueXInd](https://t.me/BlueXInd).
-
+For questions or suggestions, contact me on Telegram: [@BlueXInd](https://t.me/BlueXInd)
